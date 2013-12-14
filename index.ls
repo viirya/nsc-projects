@@ -1,4 +1,13 @@
 budgetCtrl = ($scope) ->
+
+  inspector = d3.select \body
+      .append \div
+      .attr \class  \inspector
+      .style \opacity 0
+
+  inspector_dept = inspector.append \p
+  inspector_inst = inspector.append \p
+
   radius = 900
   color = d3.scale.category20c!
   color = d3.scale.ordinal!range <[#F6B4FF #AA8BE8 #86A0FF #A6D7E8 #C0FFEC]>
@@ -47,6 +56,7 @@ budgetCtrl = ($scope) ->
   $scope.$watch 'query', ->
     console.log $scope.query
     $scope.update!
+
   data <- d3.json \budget.json
   bubble = d3.layout.pack!sort null .size [radius,radius] .padding 1.5
   svg = d3.select \#svg
@@ -93,7 +103,20 @@ budgetCtrl = ($scope) ->
                       ..append \circle
                         .attr \r -> it.r
                         .attr \fill -> if it.name => color it.name else \none
-                        .on \mouseover (it) -> $scope.$apply (e)-> $scope.name = it.name
+                        .on \mouseover (it) ->
+                            $scope.$apply (e)-> $scope.name = it.name
+                            inspector.transition!
+                                .duration 200
+                                .style \opacity 0.9
+                            
+                            inspector_inst.text it.name
+                            inspector_dept.text d.inst
+                            inspector.style('left', (d3.event.pageX + 30) + "px")
+                            inspector.style('top', (d3.event.pageY) + "px")
+                        .on \mouseout (it) ->
+                            inspector.transition!
+                                .duration 500
+                                .style \opacity 0.0
 
                   d3.select parent .selectAll \g.dept .data bubble.nodes({children: d.c})
                     .selectAll \circle
